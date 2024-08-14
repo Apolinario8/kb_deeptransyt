@@ -4,7 +4,7 @@
         "goncalo_apolinario"
     ],
     "contact": "",
-    "categories": ["active"],
+    "categories": ["active", "annotation"],
     "widgets": {
         "input": null,
         "output": null
