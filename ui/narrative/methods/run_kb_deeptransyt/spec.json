@@ -37,6 +37,9 @@
                 },{
                     "input_parameter": "parameter_1",
                     "target_property": "parameter_1"
+                },{
+                    "input_parameter": "input_genome",
+                    "target_property": "input_genome"
                 }
             ],
             "output_mapping": [
