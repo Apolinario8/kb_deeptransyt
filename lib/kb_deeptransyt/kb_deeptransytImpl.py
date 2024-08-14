@@ -57,7 +57,7 @@ class kb_deeptransyt:
                                                 'workspace_name': params['workspace_name']})
 
         # deep_transyt.run(xxxxx)
-        print('works!')
+        print('works!', params)
 
         output = {
             'report_name': report_info['name'],
