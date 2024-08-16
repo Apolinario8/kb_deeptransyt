@@ -3,6 +3,8 @@
 import logging
 import os
 
+from predict_genome import *
+
 from installed_clients.KBaseReportClient import KBaseReport
 #END_HEADER
 
@@ -48,6 +50,36 @@ class kb_deeptransyt:
         :returns: instance of type "ReportResults" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String
         """
+
+        input_dir = params['input_dir']
+        output_dir = params['output_dir']
+        preprocess = params.get('preprocess', True)
+
+        # Running the deeptransyt process
+        df_sequences = load_sequences(input_dir)
+        encodings, labels = create_encodings(df_sequences, input_dir, preprocess=preprocess)
+        
+        # Binary prediction
+        df_binary_predictions, binary_labels = predict_binary(encodings, labels)
+
+        # Family prediction
+        positive_indices = np.where(binary_labels == 1)[0]
+        positive_encodings = encodings[positive_indices]
+        positive_labels = [labels[i] for i in positive_indices]
+        
+        df_family_predictions = predict_family(positive_encodings, positive_labels)
+        df_subfamily_predictions = predict_subfamily(positive_encodings, positive_labels)
+        df_metabolic_predictions = predict_metabolic_important(positive_encodings, positive_labels)
+        
+        # Merging 
+        df_merged = df_binary_predictions.merge(df_family_predictions, on='Accession', how='left')
+        df_merged = df_merged.merge(df_subfamily_predictions, on='Accession', how='left')
+        df_merged = df_merged.merge(df_metabolic_predictions, on='Accession', how='left')
+        
+        # Saving final csv
+        final_output_path = os.path.join(output_dir, 'final_predictions.csv')
+        df_merged.to_csv(final_output_path, index=False)
+        
         # ctx is the context object
         # return variables are: output
         #BEGIN run_kb_deeptransyt
@@ -71,6 +103,7 @@ class kb_deeptransyt:
                              'output is not type dict as required.')
         # return the results
         return [output]
+    
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
