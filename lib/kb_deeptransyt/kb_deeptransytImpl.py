@@ -3,10 +3,12 @@
 import os
 import shutil
 import uuid
+import yaml
 
 from predict_genome import *
 
 from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.KBaseDataObjectToFileUtilsClient import KBaseDataObjectToFileUtils
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.WorkspaceClient import Workspace as workspaceService
 #END_HEADER
@@ -36,37 +38,15 @@ class kb_deeptransyt:
 
     # config contains contents of config file in a hash or None if it couldn't
     # be found
-    def _get_input_file_ref_from_params(self, params):
-        if 'input_genome' in params:
-            return params['input_genome']
-        else:
-            if 'input_ws' not in params and 'input_file' not in params:
-                raise ValueError('Either the "input_genome" field or the "input_ws" with "input_file" fields must be set.')
-            return str(params['input_ws']) + '/' + str(params['input_file'])
-
-    def create_report(self, token, ws, uuid_string, output_dir):
-        output_files = [{'shock_id': self.dfu.file_to_shock({
-                                'file_path': os.path.join(output_dir, 'final_predictions.csv'),
-                                'make_handle': 0,
-                                'pack': 'zip'})['shock_id'],
-                        'name': 'final_predictions.csv',
-                        'label': 'Predicted Results',
-                        'description': 'CSV file containing the predicted results'}]
-
-        report_params = {
-            'file_links': output_files,
-            'workspace_name': ws,
-            'report_object_name': 'kb_deeptransyt_report_' + uuid_string
-        }
-
-        kbase_report_client = KBaseReport(self.callback_url, token=token)
-        output = kbase_report_client.create_extended_report(report_params)
-        return output
 
     def __init__(self, config):
+        #BEGIN_CONSTRUCTOR
         self.workspaceURL = config['workspace-url']
         self.scratch = os.path.abspath(config['scratch'])
         self.callback_url = os.environ['SDK_CALLBACK_URL']
+        logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
+                            level=logging.INFO)
+        #END_CONSTRUCTOR
         self.dfu = DataFileUtil(self.callback_url)
         pass
 
@@ -77,6 +57,52 @@ class kb_deeptransyt:
         :returns: instance of type "ReportResults" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String
         """
+
+        if not isinstance(params['input_genome'], str) or not len(params['input_genome']):
+            raise ValueError('Pass in a valid genome reference string')
+
+        # setup
+        with open("/kb/module/kbase.yml", 'r') as stream:
+            data_loaded = yaml.safe_load(stream)
+        version = str(data_loaded['module-version'])
+        input_genome = params['input_genome']
+
+        # create Util objects
+        wsClient = workspaceService(self.workspaceURL, token=ctx['token'])
+        object_to_file_utils = KBaseDataObjectToFileUtils(self.callback_url, token=ctx['token'])
+
+        # get genomes
+        genome_dir = os.path.join(self.scratch, 'genomes')
+        os.mkdir(genome_dir)
+        genome_info = wsClient.get_object_info_new({'objects': [{'ref': input_genome}]})[0]
+        genome_input_type = genome_info[2]
+        faa_locs = list()
+        genome_ref_dict = {}
+        if 'GenomeSet' in genome_input_type:
+            genomeSet_object = wsClient.get_objects2({'objects': [{'ref': input_genome}]})['data'][0]['data']
+            for ref_dict in genomeSet_object['elements'].values():
+                genome_ref = ref_dict['ref']
+                name = wsClient.get_object_info_new({'objects': [{'ref': genome_ref}]})[0][1]
+                genome_ref_dict[name] = genome_ref
+        else:
+            genome_ref_dict[genome_info[1]] = input_genome
+        for genome_name, genome_ref in genome_ref_dict.items():
+            # this makes the names match if you are doing a genome or genomeSet
+            faa_file = '%s.faa' % genome_name
+            faa_object = object_to_file_utils.GenomeToFASTA({
+                "genome_ref": genome_ref,
+                "file": faa_file,
+                "dir": genome_dir,
+                "console": [],
+                "invalid_msgs": [],
+                'residue_type': 'protein',
+                'feature_type': 'CDS',
+                'record_id_pattern': '%%feature_id%%',
+                'record_desc_pattern': '[%%genome_id%%]',
+                'case': 'upper',
+                'linewrap': 50
+            })
+            faa_locs.append(faa_object['fasta_file_path'])
 
         token = ctx['token']
         uuid_string = str(uuid.uuid4())
@@ -111,9 +137,22 @@ class kb_deeptransyt:
         final_output_path = os.path.join(output_dir, 'final_predictions.csv')
         df_merged.to_csv(final_output_path, index=False)
 
-        output = self.create_report(token, params['workspace_name'], uuid_string, output_dir)
+        # ctx is the context object
+        # return variables are: output
+        #BEGIN run_kb_deeptransyt
+        report = KBaseReport(self.callback_url)
+        report_info = report.create({'report': {'objects_created':[],
+                                                'text_message': params['parameter_1']},
+                                                'workspace_name': params['workspace_name']})
 
-        shutil.rmtree(output_dir, ignore_errors=True)
+        # deep_transyt.run(xxxxx)
+        print('works!', params)
+
+        output = {
+            'report_name': report_info['name'],
+            'report_ref': report_info['ref'],
+        }
+        #END run_kb_deeptransyt
 
         return [output]
     

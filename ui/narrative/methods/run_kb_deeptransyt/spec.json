@@ -7,29 +7,18 @@
     "categories": ["active", "annotation"],
     "widgets": {
         "input": null,
-        "output": null
+        "output": "display"
     },
     "parameters": [ 
         {
-            "id": "parameter_1",
-            "optional": true,
-            "advanced": false,
-            "allow_multiple": false,
-            "default_values": [ "" ],
-            "field_type": "text",
-            "text_options": {
-                "valid_ws_types": [ ]
-            }
-        },
-        {
             "id": "input_genome",
-            "optional": true,
+            "optional": false,
             "advanced": false,
             "allow_multiple": false,
             "default_values": [ "" ],
             "field_type": "text",
             "text_options": {
-                "valid_ws_types": [ ]
+                "valid_ws_types": [ "KBaseGenomes.Genome", "KBaseCollections.GenomeSet", "KBaseSearch.GenomeSet" ]
             }
         }
     ],
@@ -45,9 +34,6 @@
                 },{
                     "narrative_system_variable": "workspace_id",
                     "target_property": "workspace_id"
-                },{
-                    "input_parameter": "parameter_1",
-                    "target_property": "parameter_1"
                 },{
                     "input_parameter": "input_genome",
                     "target_property": "input_genome"
