@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 #BEGIN_HEADER
 import os
-import shutil
-import uuid
 import yaml
 
 from predict_genome import *
@@ -104,48 +102,50 @@ class kb_deeptransyt:
             })
             faa_locs.append(faa_object['fasta_file_path'])
 
-        uuid_string = str(uuid.uuid4())
-        output_dir = os.path.join(self.scratch, uuid_string)
-        os.mkdir(output_dir)
+        # annotate with DeepTransyt
+        output_dir = os.path.join(self.scratch, 'results')
+        os.makedirs(output_dir, exist_ok=True)
 
-        #input_dir = params['input_dir']
         preprocess = params.get('preprocess', True)
 
         # Preprocessing
-        df_sequences = load_sequences(genome_dir)
-        encodings, labels = create_encodings(df_sequences, genome_dir, preprocess=preprocess)
-        
-        # Binary prediction
-        df_binary_predictions, binary_labels = predict_binary(encodings, labels)
-
-        # Family prediction
-        positive_indices = np.where(binary_labels == 1)[0]
-        positive_encodings = encodings[positive_indices]
-        positive_labels = [labels[i] for i in positive_indices]
-        
-        df_family_predictions = predict_family(positive_encodings, positive_labels)
-        df_subfamily_predictions = predict_subfamily(positive_encodings, positive_labels)
-        df_metabolic_predictions = predict_metabolic_important(positive_encodings, positive_labels)
-        
-        # Merging results
-        df_merged = df_binary_predictions.merge(df_family_predictions, on='Accession', how='left')
-        df_merged = df_merged.merge(df_subfamily_predictions, on='Accession', how='left')
-        df_merged = df_merged.merge(df_metabolic_predictions, on='Accession', how='left')
-        
-        # Saving final csv
-        final_output_path = os.path.join(output_dir, 'final_predictions.csv')
-        df_merged.to_csv(final_output_path, index=False)
+        for faa_file in faa_locs:
+            # Load sequences 
+            df_sequences = load_sequences(faa_file)
+            
+            # Create encodings
+            encodings, labels = create_encodings(df_sequences, genome_dir, preprocess=preprocess)
+            
+            # Binary prediction
+            df_binary_predictions, binary_labels = predict_binary(encodings, labels)
+            
+            # Family prediction
+            positive_indices = np.where(binary_labels == 1)[0]
+            positive_encodings = encodings[positive_indices]
+            positive_labels = [labels[i] for i in positive_indices]
+            
+            df_family_predictions = predict_family(positive_encodings, positive_labels)
+            df_subfamily_predictions = predict_subfamily(positive_encodings, positive_labels)
+            df_metabolic_predictions = predict_metabolic_important(positive_encodings, positive_labels)
+            
+            # Merging results
+            df_merged = df_binary_predictions.merge(df_family_predictions, on='Accession', how='left')
+            df_merged = df_merged.merge(df_subfamily_predictions, on='Accession', how='left')
+            df_merged = df_merged.merge(df_metabolic_predictions, on='Accession', how='left')
+            
+            file_name = os.path.basename(faa_file).replace('.faa', '_predictions.csv')
+            final_output_path = os.path.join(output_dir, file_name)
+    
+            # Saving results to csv
+            df_merged.to_csv(final_output_path, index=False)
 
         # ctx is the context object
         # return variables are: output
         #BEGIN run_kb_deeptransyt
         report = KBaseReport(self.callback_url)
         report_info = report.create({'report': {'objects_created':[],
-                                                'text_message': params['parameter_1']},
+                                                'text_message': params['input_genome']},
                                                 'workspace_name': params['workspace_name']})
-
-        # deep_transyt.run(xxxxx)
-        print('works!', params)
 
         output = {
             'report_name': report_info['name'],

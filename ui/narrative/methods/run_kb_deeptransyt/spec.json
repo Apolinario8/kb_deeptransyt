@@ -20,6 +20,17 @@
             "text_options": {
                 "valid_ws_types": [ "KBaseGenomes.Genome", "KBaseCollections.GenomeSet", "KBaseSearch.GenomeSet" ]
             }
+        },
+        {
+            "id": "Preprocess",
+            "optional": true,
+            "advanced": true,
+            "allow_multiple": false,
+            "default_values": [ "True" ],
+            "field_type": "text",
+            "text_options": {
+
+            }
         }
     ],
     "behavior": {
@@ -37,7 +48,11 @@
                 },{
                     "input_parameter": "input_genome",
                     "target_property": "input_genome"
+                },{
+                    "input_parameter": "Preprocess",
+                    "target_property": "Preprocess"
                 }
+
             ],
             "output_mapping": [
                 {
