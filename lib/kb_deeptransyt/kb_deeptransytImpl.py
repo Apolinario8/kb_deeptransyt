@@ -104,7 +104,6 @@ class kb_deeptransyt:
             })
             faa_locs.append(faa_object['fasta_file_path'])
 
-        token = ctx['token']
         uuid_string = str(uuid.uuid4())
         output_dir = os.path.join(self.scratch, uuid_string)
         os.mkdir(output_dir)

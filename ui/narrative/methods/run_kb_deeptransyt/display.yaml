@@ -4,7 +4,7 @@
 name: Transporter Annotation with Deep Transyt
 
 tooltip: |
-    Perform some kind of method
+    Perform transporters annotation with DeepTransyt
 
 screenshots: []
 
@@ -24,6 +24,7 @@ suggestions:
 # Configure the display and description of parameters
 #
 parameters :
+    input_genome :
         ui-name : |
             Input Genome
         short-hint : |
