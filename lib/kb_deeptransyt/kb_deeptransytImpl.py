@@ -108,12 +108,12 @@ class kb_deeptransyt:
         output_dir = os.path.join(self.scratch, uuid_string)
         os.mkdir(output_dir)
 
-        input_dir = params['input_dir']
+        #input_dir = params['input_dir']
         preprocess = params.get('preprocess', True)
 
         # Preprocessing
-        df_sequences = load_sequences(input_dir)
-        encodings, labels = create_encodings(df_sequences, input_dir, preprocess=preprocess)
+        df_sequences = load_sequences(genome_dir)
+        encodings, labels = create_encodings(df_sequences, genome_dir, preprocess=preprocess)
         
         # Binary prediction
         df_binary_predictions, binary_labels = predict_binary(encodings, labels)
