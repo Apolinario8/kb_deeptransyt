@@ -31,7 +31,7 @@ parameters :
             The genome(s) you want to annotate with DeepTransyt
     preprocess :
         ui-name : |
-            Preprocess
+            preprocess
         short-hint : |
             Truncating padding and removing fragments. Removing ambiguous aa.
         default : true

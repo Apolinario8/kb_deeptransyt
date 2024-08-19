@@ -22,7 +22,7 @@
             }
         },
         {
-            "id": "Preprocess",
+            "id": "preprocess",
             "optional": true,
             "advanced": true,
             "allow_multiple": false,
@@ -49,8 +49,8 @@
                     "input_parameter": "input_genome",
                     "target_property": "input_genome"
                 },{
-                    "input_parameter": "Preprocess",
-                    "target_property": "Preprocess"
+                    "input_parameter": "preprocess",
+                    "target_property": "preprocess"
                 }
 
             ],
