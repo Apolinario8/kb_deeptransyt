@@ -2,8 +2,11 @@
 #BEGIN_HEADER
 import os
 import yaml
+import logging
 
-from predict_genome import *
+from DeepTranSyT.sequence_processing import load_sequences, preprocess_sequences, create_encodings
+from DeepTranSyT.make_predictions import predict_binary, predict_family, predict_subfamily, predict_metabolic_important
+from DeepTranSyT import main as run_deeptransyt
 
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.KBaseDataObjectToFileUtilsClient import KBaseDataObjectToFileUtils
@@ -102,42 +105,14 @@ class kb_deeptransyt:
             })
             faa_locs.append(faa_object['fasta_file_path'])
 
-        # annotate with DeepTransyt
         output_dir = os.path.join(self.scratch, 'results')
         os.makedirs(output_dir, exist_ok=True)
-
+        
+        # Run DeepTranSyT package
         preprocess = params.get('preprocess', True)
-
-        # Preprocessing
-        for faa_file in faa_locs:
-            # Load sequences 
-            df_sequences = load_sequences(faa_file)
-            
-            # Create encodings
-            encodings, labels = create_encodings(df_sequences, genome_dir, preprocess=preprocess)
-            
-            # Binary prediction
-            df_binary_predictions, binary_labels = predict_binary(encodings, labels)
-            
-            # Family prediction
-            positive_indices = np.where(binary_labels == 1)[0]
-            positive_encodings = encodings[positive_indices]
-            positive_labels = [labels[i] for i in positive_indices]
-            
-            df_family_predictions = predict_family(positive_encodings, positive_labels)
-            df_subfamily_predictions = predict_subfamily(positive_encodings, positive_labels)
-            df_metabolic_predictions = predict_metabolic_important(positive_encodings, positive_labels)
-            
-            # Merging results
-            df_merged = df_binary_predictions.merge(df_family_predictions, on='Accession', how='left')
-            df_merged = df_merged.merge(df_subfamily_predictions, on='Accession', how='left')
-            df_merged = df_merged.merge(df_metabolic_predictions, on='Accession', how='left')
-            
-            file_name = os.path.basename(faa_file).replace('.faa', '_predictions.csv')
-            final_output_path = os.path.join(output_dir, file_name)
-    
-            # Saving results to csv
-            df_merged.to_csv(final_output_path, index=False)
+        gpu = params.get('gpu', 3)
+        
+        run_deeptransyt(input_file=genome_ref, output_dir=output_dir, preprocess=preprocess, gpu=gpu)
 
         # ctx is the context object
         # return variables are: output
