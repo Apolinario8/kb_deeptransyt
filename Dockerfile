@@ -12,8 +12,11 @@ MAINTAINER KBase Developer
 # -----------------------------------------
 
 COPY ./ /kb/module
+COPY requirements.txt /kb/module/ 
 RUN mkdir -p /kb/module/work
 RUN chmod -R a+rw /kb/module
+
+RUN pip install --no-cache-dir -r /kb/module/requirements.txt
 
 WORKDIR /kb/module
 
