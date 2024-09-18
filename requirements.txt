@@ -1,1 +1,1 @@
-DeepTranSyT==0.0.5
+DeepTranSyT==0.0.6
