@@ -4,9 +4,9 @@ import os
 import yaml
 import logging
 
-from DeepTranSyT.sequence_processing import load_sequences, preprocess_sequences, create_encodings
-from DeepTranSyT.make_predictions import predict_binary, predict_family, predict_subfamily, predict_metabolic_important
-from DeepTranSyT import main as run_deeptransyt
+from deeptransyt.sequence_processing import load_sequences, preprocess_sequences, create_encodings
+from deeptransyt.make_predictions import predict_binary, predict_family, predict_subfamily, predict_metabolic_important
+from deeptransyt import main as run_deeptransyt
 
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.KBaseDataObjectToFileUtilsClient import KBaseDataObjectToFileUtils
