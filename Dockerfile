@@ -15,7 +15,7 @@ COPY ./ /kb/module
 RUN mkdir -p /kb/module/work
 RUN chmod -R a+rw /kb/module
 
-RUN pip install --upgrade pip && pip install DeepTranSyT==0.0.8
+RUN pip install --upgrade pip && pip install deeptransyt==0.0.5
 
 WORKDIR /kb/module
 
