@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export PATH=/opt/conda/bin:$PATH
+source activate deeptransyt_env
+
 . /kb/deployment/user-env.sh
 
 python ./scripts/prepare_deploy_cfg.py ./deploy.cfg ./work/config.properties
