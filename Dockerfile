@@ -10,19 +10,16 @@ MAINTAINER goncalo_apolinario
 
 
 # -----------------------------------------
-    RUN apt-get update && \
+RUN apt-get update && \
     apt-get install -y wget bzip2 && \
     wget -nv https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda && \
     rm Miniconda3-latest-Linux-x86_64.sh
 
-# Add Miniconda to the PATH
 ENV PATH=/opt/conda/bin:$PATH
 
-# Create a Python 3.10 environment using conda
 RUN conda create -n deeptransyt_env python=3.10
 
-# Activate the conda environment and install your Python package and other dependencies
 RUN /opt/conda/bin/conda install -n deeptransyt_env pip && \
     /opt/conda/envs/deeptransyt_env/bin/pip install --upgrade pip && \
     /opt/conda/envs/deeptransyt_env/bin/pip install deeptransyt==0.0.11
@@ -31,12 +28,13 @@ COPY ./ /kb/module
 RUN mkdir -p /kb/module/work
 RUN chmod -R a+rw /kb/module
 
-RUN pip install --upgrade pip && pip install deeptransyt==0.0.11 
+#RUN pip install --upgrade pip && pip install deeptransyt==0.0.11 
 
 WORKDIR /kb/module
 
 RUN make all
 
-ENTRYPOINT [ "./scripts/entrypoint.sh" ]
+#ENTRYPOINT [ "./scripts/entrypoint.sh" ]
+ENTRYPOINT [ "bash", "-c", "source activate deeptransyt_env && ./scripts/entrypoint.sh" ]
 
 CMD [ ]
