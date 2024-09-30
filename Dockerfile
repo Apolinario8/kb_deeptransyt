@@ -22,7 +22,7 @@ RUN conda create -n deeptransyt_env -c conda-forge python=3.10 uwsgi
 
 RUN /opt/conda/bin/conda install -n deeptransyt_env pip && \
     /opt/conda/envs/deeptransyt_env/bin/pip install --upgrade pip && \
-    /opt/conda/envs/deeptransyt_env/bin/pip install deeptransyt==0.0.11 \
+    /opt/conda/envs/deeptransyt_env/bin/pip install deeptransyt==0.0.11 &&\
     /opt/conda/envs/deeptransyt_env/bin/pip install jinja2
 
 COPY ./ /kb/module
