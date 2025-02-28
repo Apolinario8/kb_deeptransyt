@@ -24,6 +24,9 @@ compile:
 		--pysrvname $(SERVICE_CAPS).$(SERVICE_CAPS)Server \
 		--pyimplname $(SERVICE_CAPS).$(SERVICE_CAPS)Impl;
 
+generate-report: compile
+	python -c 'from kb_sdk import KBaseReport; report = KBaseReport(); report.create({"workspace_name": "YourWorkspaceName", "message": "Build completed successfully"});'
+
 build:
 	chmod +x $(SCRIPTS_DIR)/entrypoint.sh
 
